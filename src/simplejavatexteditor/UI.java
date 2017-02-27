@@ -95,19 +95,21 @@ public class UI extends JFrame implements ActionListener {
         textArea.setTabSize(2);
         textArea.setFont(new Font("Century Gothic", Font.BOLD, 12));
         textArea.setTabSize(2);
-
+        JScrollPane scroll = new JScrollPane(textArea,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         /* SETTING BY DEFAULT WORD WRAP ENABLED OR TRUE */
         textArea.setLineWrap(true);
 
         // This is why we didn't have to worry about the size of the TextArea!
         getContentPane().setLayout(new BorderLayout()); // the BorderLayout bit makes it fill it automatically
-        getContentPane().add(textArea);
-
+   
+        getContentPane().add(scroll);
+        
         // Set the Menus
         menuFile = new JMenu("File");
         menuEdit = new JMenu("Edit");
         menuFind = new JMenu("Search");
         menuAbout = new JMenu("About");
+        
         //Font Settings menu
 
         // Set the Items Menu

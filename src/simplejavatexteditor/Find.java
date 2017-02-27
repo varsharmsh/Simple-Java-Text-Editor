@@ -19,11 +19,15 @@
 package simplejavatexteditor;
 
 import javax.swing.*;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
+import java.util.concurrent.*;
+import java.util.*;
 public class Find extends JFrame implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -31,9 +35,9 @@ public class Find extends JFrame implements ActionListener {
         int select_start=-1;
     JLabel lab1, lab2;
     JTextField textF, textR;
-    JButton findBtn, findNext, replace, replaceAll, cancel;
+    JButton findBtn, findNext, replace, replaceAll, cancel,findAll;
     private JTextArea txt;
-
+    int numThreads=4;
 
     public Find(JTextArea text) {
         this.txt = text;
@@ -46,6 +50,7 @@ public class Find extends JFrame implements ActionListener {
         findNext = new JButton("Find Next");
         replace = new JButton("Replace");
         replaceAll = new JButton("Replace All");
+        findAll=new JButton("Find All");
         cancel = new JButton("Cancel");
 
         // Set Layout NULL
@@ -74,22 +79,26 @@ public class Find extends JFrame implements ActionListener {
         add(findNext);
         findNext.addActionListener(this);
 
-        replace.setBounds(225, 50, 115, 20);
+        findAll.setBounds(225, 50, 115, 20);
+        add(findAll);
+        findAll.addActionListener(this);
+
+        replace.setBounds(225, 72, 115, 20);
         add(replace);
         replace.addActionListener(this);
-
-        replaceAll.setBounds(225, 72, 115, 20);
+        
+        replaceAll.setBounds(225, 94, 115, 20);
         add(replaceAll);
         replaceAll.addActionListener(this);
-
-        cancel.setBounds(225, 94, 115, 20);
+        
+        cancel.setBounds(225,116, 115, 20);
         add(cancel);
         cancel.addActionListener(this);
 
 
         // Set the width and height of the window
         int width = 360;
-        int height = 160;
+        int height = 200;
 
         // Set size window
         setSize(width,height);
@@ -99,7 +108,15 @@ public class Find extends JFrame implements ActionListener {
         setLocation(center.x-width/2, center.y-height/2);
         setVisible(true);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-    }
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            	//JOptionPane.showMessageDialog(null, "yo");
+            	removeHighlights();
+                }
+            });
+        
+}
 
     public void find() {
         select_start = txt.getText().toLowerCase().indexOf(textF.getText().toLowerCase());
@@ -116,7 +133,77 @@ public class Find extends JFrame implements ActionListener {
         int select_end = select_start + textF.getText().length();
         txt.select(select_start, select_end);
     }
-
+    public Set<SearchParallel> splitString(String text,String search)
+	{
+		Set<SearchParallel> mySet=new HashSet<SearchParallel>();
+		int length=text.length();
+		for(int i=0;i<numThreads;i++)
+		{
+			
+			int startIndex=i*length/numThreads;
+			int endIndex=(i+1)*length/numThreads;
+			String temp=text.substring(startIndex,endIndex);
+			//System.out.println("TEMP: "+temp);
+			if(endIndex<text.length())
+			{
+				String concatTemp= temp.substring(temp.length()-search.length())+text.substring(endIndex,endIndex+search.length());
+				mySet.add(new SearchParallel(endIndex-search.length(),concatTemp,search));
+				//System.out.println("CONCAT TEMP:"+concatTemp+ (endIndex-search.length()));
+			}
+			mySet.add(new SearchParallel(startIndex,temp,search));
+			
+		}
+		return mySet;
+	}   
+    public void removeHighlights()
+    {
+    	txt.getHighlighter().removeAllHighlights();
+    }
+    public void findAll()
+    {
+    	//JOptionPane.showMessageDialog(null, "yo");
+    	boolean found=false;
+    	ExecutorService ex= Executors.newFixedThreadPool(numThreads);
+    	List<Future<ArrayList<Integer>>> futures;
+    	removeHighlights();
+    	int count=0;
+		try
+		{
+			long start=System.currentTimeMillis();
+			Set<SearchParallel> t=splitString(txt.getText(),textF.getText());
+			futures=ex.invokeAll(t);
+			long end=System.currentTimeMillis();
+			System.out.println("Time :"+(end-start));
+			Highlighter h=txt.getHighlighter();
+			for(Future<ArrayList<Integer>> f:futures)
+			{
+				List<Integer> temp=f.get();
+				if(temp.size()!=0)				
+				{
+					for(int occ:temp)
+					{
+						h.addHighlight(occ, occ+textF.getText().length(), DefaultHighlighter.DefaultPainter);
+						count++;
+					}
+					System.out.println(temp);
+					found=true;
+					
+				}
+			}
+			if(!found)
+			{
+				JOptionPane.showMessageDialog(null, "Could not find \"" + textF.getText() + "\"!");
+			}
+			System.out.println(count);
+		}
+		catch(Exception e)
+		{
+			System.out.println(e);
+		}
+		ex.shutdown();			
+	
+}
+    
     public void findNext() {
         String selection = txt.getSelectedText();
         try
@@ -186,8 +273,13 @@ public class Find extends JFrame implements ActionListener {
         {
            replaceAll();
         }
+        else if(e.getSource() == findAll)
+        {
+           findAll();
+        }
         else if(e.getSource() == cancel)
         {
+           removeHighlights();
            this.setVisible(false);
         }
    }
