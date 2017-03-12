@@ -144,6 +144,11 @@ public class Find extends JFrame implements ActionListener {
 			int endIndex=(i+1)*length/numThreads;
 			String temp=text.substring(startIndex,endIndex);
 			//System.out.println("TEMP: "+temp);
+			if(temp.length()<search.length())
+			{
+				mySet.add(new SearchParallel(startIndex,text,search));
+				return mySet;
+			}
 			if(endIndex<text.length())
 			{
 				String concatTemp= temp.substring(temp.length()-search.length())+text.substring(endIndex,endIndex+search.length());
@@ -185,7 +190,7 @@ public class Find extends JFrame implements ActionListener {
 						h.addHighlight(occ, occ+textF.getText().length(), DefaultHighlighter.DefaultPainter);
 						count++;
 					}
-					System.out.println(temp);
+					//System.out.println(temp);
 					found=true;
 					
 				}
@@ -194,7 +199,7 @@ public class Find extends JFrame implements ActionListener {
 			{
 				JOptionPane.showMessageDialog(null, "Could not find \"" + textF.getText() + "\"!");
 			}
-			System.out.println(count);
+			//System.out.println(count);
 		}
 		catch(Exception e)
 		{
