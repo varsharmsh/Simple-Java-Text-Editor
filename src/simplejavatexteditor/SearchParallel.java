@@ -3,13 +3,13 @@ package simplejavatexteditor;
 import java.util.concurrent.*;
 import java.util.ArrayList;
 
-
+//class that implements searching in parallel
 public class SearchParallel implements Callable <ArrayList<Integer>> 
 {
 	String myString;
 	String searchString;
 	int start;
-
+	//construct object with target and search strings and specify start index
 	public SearchParallel(int start, String str, String searchStr) {
 		this.start = start;
 		myString = str;
@@ -17,6 +17,7 @@ public class SearchParallel implements Callable <ArrayList<Integer>>
 
 	}
 
+	//returns an arraylist of occurrences
 	@Override
 	public ArrayList<Integer> call() 
 	{

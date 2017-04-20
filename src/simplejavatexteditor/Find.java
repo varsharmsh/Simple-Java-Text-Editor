@@ -133,6 +133,7 @@ public class Find extends JFrame implements ActionListener {
         int select_end = select_start + textF.getText().length();
         txt.select(select_start, select_end);
     }
+    //function to split the input text into parts and search parallely
     public Set<SearchParallel> splitString(String text,String search)
 	{
 		Set<SearchParallel> mySet=new HashSet<SearchParallel>();
@@ -164,9 +165,9 @@ public class Find extends JFrame implements ActionListener {
     {
     	txt.getHighlighter().removeAllHighlights();
     }
+    //my function that calls the search in parallel
     public void findAll()
     {
-    	//JOptionPane.showMessageDialog(null, "yo");
     	boolean found=false;
     	ExecutorService ex= Executors.newFixedThreadPool(numThreads);
     	List<Future<ArrayList<Integer>>> futures;
@@ -190,7 +191,6 @@ public class Find extends JFrame implements ActionListener {
 						h.addHighlight(occ, occ+textF.getText().length(), DefaultHighlighter.DefaultPainter);
 						count++;
 					}
-					//System.out.println(temp);
 					found=true;
 					
 				}
@@ -199,7 +199,6 @@ public class Find extends JFrame implements ActionListener {
 			{
 				JOptionPane.showMessageDialog(null, "Could not find \"" + textF.getText() + "\"!");
 			}
-			//System.out.println(count);
 		}
 		catch(Exception e)
 		{
