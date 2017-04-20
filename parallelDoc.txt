@@ -1,0 +1,6 @@
+<Code>
+
+The parallel search is being implemented by the class SearchParallel.java
+
+Find.java splits the input text and passes it to the instances of SearchParallel
+
